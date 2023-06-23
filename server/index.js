@@ -3,8 +3,12 @@ const app = express();
 const PORT = 5000;
 require("dotenv").config();
 const mongoose = require("mongoose");
-const authRoute = require("./src/v1/routes/auth");
+const authRoute = require("./src/v1/routes/index");
+const cors = require("cors")
 
+app.use(cors({
+    origin: "http://localhost:3000",
+}))
 app.use(express.json());
 app.use("/api/v1", authRoute);
 
