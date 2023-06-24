@@ -12,10 +12,6 @@ app.use(cors({
 app.use(express.json());
 app.use("/api/v1", authRoute);
 
-app.get("/", (req, res) => {
-    res.send("Hello Express");
-});
-
 //DBに接続
 const connectDB = async () => {
     try {
