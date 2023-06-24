@@ -6,6 +6,9 @@ import Resister from './components/pages/Resister';
 import { createTheme, ThemeProvider } from "@mui/material/styles"
 import { CssBaseline } from '@mui/material';
 import { blue } from '@mui/material/colors';
+import AppLayout from './components/layout/AppLayout';
+import Home from './components/pages/Home';
+import Memo from "./components/pages/Memo";
 
 function App() {
 
@@ -23,6 +26,11 @@ function App() {
           <Route path="/" element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Resister />} />
+          </Route>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<Home />} />
+            <Route path="memo" element={<Home />} />
+            <Route path="memo/:memoId" element={<Memo />} />
           </Route>
         </Routes>
       </BrowserRouter>
