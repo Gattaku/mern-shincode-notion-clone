@@ -32,20 +32,25 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ username: username });
         if (!user) {
             return res.status(401).json({
-                errors: {
-                    param: "username",
-                    message: "ユーザーが無効です"
-                }
+                errors: [
+                    {
+                        param: "username",
+                        msg: "ユーザーが無効です"
+                    }
+                ]
             })
         }
         //パスワードがあっているかを照合
         const decryptedPassword = cryptoJS.AES.decrypt(user.password, process.env.SECRET_KEY).toString(cryptoJS.enc.Utf8);
         if (password !== decryptedPassword) {
             return res.status(401).json({
-                errors: {
-                    param: "password",
-                    message: "パスワードが無効です"
-                }
+                errors: [
+                    {
+
+                        param: "password",
+                        msg: "パスワードが無効です"
+                    }
+                ]
             })
         } else {
             //JWTの発行
