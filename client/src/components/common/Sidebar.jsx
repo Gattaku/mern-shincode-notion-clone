@@ -1,4 +1,4 @@
-import { Box, Drawer, IconButton, List, ListItemButton, Typography } from '@mui/material'
+import { Box, Drawer, IconButton, List, ListItemButton, Typography, alpha } from '@mui/material'
 import React, { useEffect, useState } from 'react';
 import LogoutOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
@@ -39,7 +39,21 @@ const Sidebar = () => {
     useEffect(()=>{
         const checkActiveIndex = memos.findIndex((e)=> e._id === memoId);
         setActiveIndex(checkActiveIndex);
-    },[navigate])
+    },[navigate, memos]);
+
+    const addMemo = async() => {
+
+        try {
+            const res = await memoApi.create();
+            const newMemos = [res, ...memos];
+            // const newMemos = await memoApi.getAll();
+            dispatch(setMemo(newMemos));
+            navigate(`/memo/${res._id}`);
+        } catch (err) {
+            alert(err);
+        }
+
+    }
 
   return (
     <Drawer 
@@ -100,7 +114,7 @@ const Sidebar = () => {
                     <Typography variant="body2" fontWeight="700">
                         プライベート
                     </Typography>
-                    <IconButton>
+                    <IconButton onClick={addMemo}>
                         <AddBoxOutlinedIcon fontSize='small'/>
                     </IconButton>
                 </Box>
