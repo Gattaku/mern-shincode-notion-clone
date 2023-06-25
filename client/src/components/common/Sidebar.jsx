@@ -27,6 +27,7 @@ const Sidebar = () => {
         const getMemos = async()=> {
             try {
                 const res = await memoApi.getAll();
+                console.log(res);
                 dispatch(setMemo(res));
             } catch (err) {
                 alert(err);
