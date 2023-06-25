@@ -15,8 +15,41 @@ exports.create = async (req, res) => {
 }
 exports.getAll = async (req, res) => {
     try {
-        const memos = await Memo.find({ user: req.user._id }).sort("-position")
+        const memos = await Memo.find({ user: req.user._id }).sort("position")
         res.status(200).json(memos);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+}
+
+exports.getOne = async (req, res) => {
+    const { memoId } = req.params;
+    try {
+        const memo = await Memo.findOne({ user: req.user._id, _id: memoId });
+        if (!memo) return res.status(404).json("メモが存在しません");
+        res.status(200).json(memo);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+}
+
+exports.updata = async (req, res) => {
+    const { memoId } = req.params;
+    const { title, description } = req.body;
+    // console.log(req.body);
+    // console.log(title);
+    // console.log(description);
+
+    try {
+        if (title === "") req.body.title = "無題";
+        if (description === "") req.body.description = "ここに自由に記入してください";
+
+        const memo = await Memo.findOne({ user: req.user._id, _id: memoId });
+        if (!memo) return res.status(404).json("メモが存在しません");
+        const updatedMemo = await Memo.findByIdAndUpdate(memoId, {
+            $set: req.body,
+        })
+        res.status(200).json(updatedMemo);
     } catch (err) {
         res.status(500).json(err);
     }
