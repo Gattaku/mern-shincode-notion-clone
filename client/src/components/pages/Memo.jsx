@@ -8,6 +8,7 @@ import memoApi from '../../api/memoApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { setMemo } from '../../redux/features/memoSlice';
 import EmojiPicker from '../common/EmojiPicker';
+import StarPurple500OutlinedIcon from '@mui/icons-material/StarPurple500Outlined';
 
 
 const Memo = () => {
@@ -17,7 +18,9 @@ const Memo = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("");
-  const memos = useSelector((state)=> state.memo.value)
+  const memos = useSelector((state)=> state.memo.value);
+  const [isFavorite, setIsFavorite] = useState(false);
+
 
 
 
@@ -28,6 +31,7 @@ const Memo = () => {
         setTitle(res.title);
         setDescription(res.description);
         setIcon(res.icon);
+        setIsFavorite(res.favorite)
       } catch (err) {
         alert(err);
       }
@@ -75,16 +79,48 @@ const Memo = () => {
 
       const newMemos = memos.filter((memo)=> memo._id !== memoId);
       // const newMemos = await memoApi.getAll();
-      console.log(newMemos);
       if(newMemos.length === 0) {
         navigate("/memo");
       } else {
         const firstPath = newMemos[0]._id;
         navigate(`/memo/${firstPath}`);
       }
+      console.log(newMemos);
+      const tempLength = newMemos.length;
+      newMemos.forEach(async(elm, index) => {
+        await memoApi.update(elm._id, {position: tempLength -1 - index});
+        elm = {...elm , position: index};
+      });
+      console.log(newMemos);
       dispatch(setMemo(newMemos));
 
 
+    } catch (err) {
+      alert(err);
+    }
+  };
+
+  const changeIcon = async(newEmoji) => {
+    setIcon(newEmoji);
+    //DBのデータを更新する
+    const tempMemo = [...memos];
+    const index = tempMemo.findIndex((elm)=> elm._id === memoId);
+    tempMemo[index] = {...tempMemo[index], icon: newEmoji};
+    dispatch(setMemo(tempMemo));
+    // console.log(tempMemo);
+    try {
+      await memoApi.update(memoId, {icon: newEmoji});
+    } catch (err) {
+      alert(err);
+    }
+  }
+
+  const changeFavorite = async() => {
+    setIsFavorite(!isFavorite);
+    let tempBoolean = !isFavorite;
+    console.log(tempBoolean);
+    try {
+      await memoApi.update(memoId, {favorite: tempBoolean});
     } catch (err) {
       alert(err);
     }
@@ -99,8 +135,11 @@ const Memo = () => {
           width: "100%",
         }}
       > 
-        <IconButton>
-          <StarBorderOutlinedIcon />
+        <IconButton onClick={changeFavorite}>
+          {isFavorite ? 
+          <StarPurple500OutlinedIcon sx={{color:'yellow'}}/> :
+          <StarBorderOutlinedIcon /> 
+          }
         </IconButton>
         <IconButton variant="outlined" color="error" onClick={deleteItem}>
           <DeleteoutlinedIcon/>
@@ -108,7 +147,7 @@ const Memo = () => {
       </Box>
       <Box sx={{padding: "10px 50px"}}>
         <Box>
-          <EmojiPicker icon={icon} />
+          <EmojiPicker icon={icon} changeIcon={changeIcon}/>
           <TextField
             onChange={updateTitle}
             value={title} 

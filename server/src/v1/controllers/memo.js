@@ -15,7 +15,7 @@ exports.create = async (req, res) => {
 }
 exports.getAll = async (req, res) => {
     try {
-        const memos = await Memo.find({ user: req.user._id }).sort("position")
+        const memos = await Memo.find({ user: req.user._id }).sort("-position")
         res.status(200).json(memos);
     } catch (err) {
         res.status(500).json(err);
