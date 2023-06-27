@@ -8,15 +8,23 @@ import {useSelector} from "react-redux";
 import memoApi from '../../api/memoApi';
 import { useDispatch } from 'react-redux';
 import { setMemo } from '../../redux/features/memoSlice';
+import { setFavoriteMemo } from '../../redux/features/favoriteMemoSlice';
+import { setNormalMemo } from '../../redux/features/normalMemoSlice';
 
 const Sidebar = () => {
 
-    const [activeIndex, setActiveIndex] = useState(0);
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const {memoId} = useParams();
+    
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [isNormal, setIsNormal] = useState(false);
+    const [isFavorite, setIsFavorite] = useState(false);
+
     const user = useSelector((state)=> state.user.value)
     const memos = useSelector((state)=> state.memo.value)
+    const favoriteMemos = useSelector((state)=> state.favoriteMemo.value);
+    const normalMemos = useSelector((state)=> state.normalMemo.value);
 
     const logout = () => {
         localStorage.removeItem("token");
@@ -29,6 +37,11 @@ const Sidebar = () => {
                 const res = await memoApi.getAll();
                 console.log(res);
                 dispatch(setMemo(res));
+                const tempMemo = [...res];
+                const favoriteMemo = tempMemo.filter((elm)=> elm.favorite === true);
+                const newMemo = tempMemo.filter((elm)=> elm.favorite !== true);
+                dispatch(setFavoriteMemo(favoriteMemo));
+                dispatch(setNormalMemo(newMemo));
             } catch (err) {
                 alert(err);
             }
@@ -42,17 +55,32 @@ const Sidebar = () => {
     },[navigate, memos]);
 
     const addMemo = async() => {
-
+        setIsNormal(true);
         try {
             const res = await memoApi.create();
             const newMemos = [res, ...memos];
             // const newMemos = await memoApi.getAll();
             dispatch(setMemo(newMemos));
+            const tempMemo = [...newMemos];
+            const favoriteMemo = tempMemo.filter((elm) => elm.favorite === true);
+            const newMemo = tempMemo.filter((elm) => elm.favorite !== true);
+            console.log("favorite:", favoriteMemo);
+            console.log("normalMemo:", newMemo);
+            dispatch(setFavoriteMemo(favoriteMemo));
+            dispatch(setNormalMemo(newMemo));
             navigate(`/memo/${res._id}`);
         } catch (err) {
             alert(err);
         }
 
+    }
+
+    const showHideFavorite = () => {
+        setIsFavorite(!isFavorite);
+    }
+
+    const showHideNormal = () => {
+        setIsNormal(!isNormal);
     }
 
   return (
@@ -95,31 +123,16 @@ const Sidebar = () => {
                         alignItems: 'center',
                         justifyContent: 'space-between'
                     }}
+                    
                 >
-                    <Typography variant="body2" fontWeight="700">
-                        お気に入り
+                    <Typography variant="body2" fontWeight="700" onClick={showHideFavorite}>
+                        ▼お気に入り
                     </Typography>
                 </Box>
             </ListItemButton>
-            <Box sx={{paddigTop:"10px"}}></Box>
-            <ListItemButton>
-                <Box 
-                    sx={{
-                        width: "100%",
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                    }}
-                >
-                    <Typography variant="body2" fontWeight="700">
-                        プライベート
-                    </Typography>
-                    <IconButton onClick={addMemo}>
-                        <AddBoxOutlinedIcon fontSize='small'/>
-                    </IconButton>
-                </Box>
-            </ListItemButton>
-            {memos.map((memo, index)=>{
+            { isFavorite &&
+            (
+            favoriteMemos.map((memo, index)=>{
                 return (
                     <ListItemButton 
                         sx={{pl:"20px"}} 
@@ -131,7 +144,46 @@ const Sidebar = () => {
                         <Typography>{memo.icon} {memo.title}</Typography>        
                     </ListItemButton>                   
                 )
-            })}
+                
+            })
+            )
+            }
+            <Box sx={{paddigTop:"10px"}}></Box>
+            <ListItemButton>
+                <Box 
+                    sx={{
+                        width: "100%",
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                    }}
+                    
+                >
+                    <Typography variant="body2" fontWeight="700" onClick={showHideNormal}>
+                        ▼プライベート
+                    </Typography>
+                    <IconButton onClick={addMemo}>
+                        <AddBoxOutlinedIcon fontSize='small'/>
+                    </IconButton>
+                </Box>
+            </ListItemButton>
+            { isNormal &&
+            (
+            normalMemos.map((memo, index)=>{
+                return (
+                    <ListItemButton 
+                        sx={{pl:"20px"}} 
+                        component={Link} 
+                        to={`/memo/${memo._id}`} 
+                        key={memo._id}
+                        selected = {index === activeIndex}
+                    >
+                        <Typography>{memo.icon} {memo.title}</Typography>        
+                    </ListItemButton>                   
+                )
+            })           
+            )
+            }
         </List>
     </Drawer>
   )
