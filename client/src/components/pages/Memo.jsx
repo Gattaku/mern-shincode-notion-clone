@@ -6,9 +6,11 @@ import DeleteoutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import { useNavigate, useParams } from 'react-router-dom';
 import memoApi from '../../api/memoApi';
 import { useDispatch, useSelector } from 'react-redux';
-import { setMemo } from '../../redux/features/memoSlice';
 import EmojiPicker from '../common/EmojiPicker';
 import StarPurple500OutlinedIcon from '@mui/icons-material/StarPurple500Outlined';
+import { setMemo } from '../../redux/features/memoSlice';
+import {setFavoriteMemo} from "../../redux/features/favoriteMemoSlice.js";
+import { setNormalMemo } from '../../redux/features/normalMemoSlice';
 
 
 const Memo = () => {
@@ -50,8 +52,14 @@ const Memo = () => {
     timer = setTimeout(async()=>{
       try {
         await memoApi.update(memoId,{title: newTitle,});
-        const newMemos = await memoApi.getAll();
-        dispatch(setMemo(newMemos));
+        const tempMemo = [...memos];
+        const index = tempMemo.findIndex((elm)=> elm._id === memoId);
+        tempMemo[index] = {...tempMemo[index],title: newTitle};
+        dispatch(setMemo(tempMemo));
+        const favoriteMemo = tempMemo.filter((elm)=> elm.favorite === true);
+        const newMemo = tempMemo.filter((elm)=> elm.favorite !== true);
+        dispatch(setFavoriteMemo(favoriteMemo));
+        dispatch(setNormalMemo(newMemo));
       } catch (err) {
         alert(err);
       }
@@ -78,7 +86,6 @@ const Memo = () => {
       console.log(deleteMemo);
 
       const newMemos = memos.filter((memo)=> memo._id !== memoId);
-      // const newMemos = await memoApi.getAll();
       if(newMemos.length === 0) {
         navigate("/memo");
       } else {
@@ -91,8 +98,12 @@ const Memo = () => {
         await memoApi.update(elm._id, {position: tempLength -1 - index});
         elm = {...elm , position: index};
       });
-      console.log(newMemos);
       dispatch(setMemo(newMemos));
+      const tempMemo = [...newMemos];
+      const favoriteMemo = tempMemo.filter((elm)=> elm.favorite === true);
+      const newMemo = tempMemo.filter((elm)=> elm.favorite !== true);
+      dispatch(setFavoriteMemo(favoriteMemo));
+      dispatch(setNormalMemo(newMemo));
 
 
     } catch (err) {
@@ -106,24 +117,37 @@ const Memo = () => {
     const tempMemo = [...memos];
     const index = tempMemo.findIndex((elm)=> elm._id === memoId);
     tempMemo[index] = {...tempMemo[index], icon: newEmoji};
-    dispatch(setMemo(tempMemo));
     // console.log(tempMemo);
     try {
       await memoApi.update(memoId, {icon: newEmoji});
     } catch (err) {
       alert(err);
     }
+    dispatch(setMemo(tempMemo));
+    // const tempMemo = [...newMemos];
+    const favoriteMemo = tempMemo.filter((elm)=> elm.favorite === true);
+    const newMemo = tempMemo.filter((elm)=> elm.favorite !== true);
+    dispatch(setFavoriteMemo(favoriteMemo));
+    dispatch(setNormalMemo(newMemo));
   }
 
   const changeFavorite = async() => {
     setIsFavorite(!isFavorite);
     let tempBoolean = !isFavorite;
-    console.log(tempBoolean);
     try {
       await memoApi.update(memoId, {favorite: tempBoolean});
     } catch (err) {
       alert(err);
     }
+    const tempMemo = [...memos];
+    const index = tempMemo.findIndex((elm)=> elm._id === memoId);
+    tempMemo[index] = {...tempMemo[index], favorite:tempBoolean};
+    dispatch(setMemo(tempMemo));
+    const favoriteMemo = tempMemo.filter((elm)=> elm.favorite === true);
+    const newMemo = tempMemo.filter((elm)=> elm.favorite !== true);
+    dispatch(setFavoriteMemo(favoriteMemo));
+    dispatch(setNormalMemo(newMemo));
+
   }
 
   return (
